@@ -859,3 +859,32 @@ This repo is a Next.js 16 scaffold plus a very detailed AI operating manual (`.c
 
 ---
 
+
+_**User: shamima-g (2026-04-21 10:34Z)**_
+
+Write the explanation to a md file
+
+
+#### Permission Request - 2026-04-21 10:37Z
+
+**Tool:** `Write`
+
+---
+
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Write_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Written to [HOW-IT-WORKS.md](HOW-IT-WORKS.md) at the project root.
+
+[Logs saved]
+
+---
+
