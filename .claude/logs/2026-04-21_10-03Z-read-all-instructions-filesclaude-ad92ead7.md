@@ -888,3 +888,556 @@ Written to [HOW-IT-WORKS.md](HOW-IT-WORKS.md) at the project root.
 
 ---
 
+
+_**User: shamima-g (2026-04-21 11:02Z)**_
+
+_Opened file: `c:\AI\21-04-2026\HOW-IT-WORKS.md`_
+
+Now that you understand how the template works, will you be able to help me to write a test suite of unit tests to test each and every part.  Don't do anything, just suggest for the time being.
+- The tests should be automated, no manual intervention.
+- Write tests a specific behavior of the Claude Code workflow
+- tests are independent, any-time-runnable unit test (each test has its own setup,onetime-setup,teardown,one time tear-down
+- No test depends on another's output
+- Maybe - One File per Test Area(what do you suggest)
+- Include Reusable Helpers
+- Consider rolling back or working on different branches for different tests.
+-When you create a scenario, make it does the minimum work
+Suggest any other way of testing what you think I have missed.
+
+
+_**Agent (model claude-opus-4-7)**_
+
+Happy to plan this out. Here's what I'd suggest â€” as a proposal only, no code written yet.
+
+## 1. What Actually Needs Testing
+
+The tricky thing is that this repo is **meta-tooling** â€” it tests itself and the AI workflow, not a normal app. I'd split testable surface into 7 categories:
+
+| # | Test Area | What lives there | Test type |
+|---|---|---|---|
+| A | **State machine** | `.claude/scripts/transition-phase.js`, `detect-workflow-state.js`, `validate-phase-output.js` | Pure unit |
+| B | **Quality gates runner** | `.claude/scripts/quality-gates.js` | Unit + subprocess |
+| C | **Dashboard & progress generators** | `collect-dashboard-data.js`, `generate-dashboard-html.js`, `generate-progress-index.js`, `generate-todo-list.js`, `generate-traceability-matrix.js` | Unit + snapshot |
+| D | **Import / copy utilities** | `import-prototype.js`, `copy-with-header.js`, `init-preferences.js`, `scan-doc.js` | Unit |
+| E | **Permission / safety hooks** | `bash-permission-checker.js`, `claude-md-permission-checker.js` | Unit (table-driven) |
+| F | **PowerShell hooks** | `workflow-guard.ps1`, `inject-phase-context.ps1`, `inject-agent-context.ps1`, `capture-context.ps1` | Pester (PS test runner) |
+| G | **Static consistency** | Agent `.md` frontmatter, command `.md` frontmatter, CLAUDE.md â†” settings.json â†” README.md | Doc-lint |
+
+Two you didn't mention but I'd add:
+
+| H | **JSON schema validation** | `workflow-state.json`, `intake-manifest.json`, `preferences.json` | Schema tests |
+| I | **Workflow simulation (golden path)** | Full `/start` â†’ commit via scripted state transitions | Integration |
+
+## 2. Frameworks I'd Pick
+
+- **Vitest** â€” already in `web/`, lightest lift. Use for Aâ€“E, G, H.
+- **Pester** (PowerShell test framework) â€” for F. Runs on Windows natively; your platform already has it.
+- **Node's `child_process`** spawning for subprocess tests in B (exit codes matter).
+- **ajv** for JSON schema validation in H.
+- **Nothing new for CI** â€” reuse `.github/workflows/`.
+
+Keep this separate from the `web/` Vitest suite â€” it has different scope. Put it at `./tests/workflow/` with its own `vitest.config.ts`, or as a second Vitest workspace.
+
+## 3. File Organisation â€” One File Per Script
+
+I'd lean toward **one test file per script**, not one per "area". Scripts are the natural unit, they each have real behaviour, and it makes failures immediately traceable.
+
+```
+tests/workflow/
+â”œâ”€â”€ vitest.config.ts
+â”œâ”€â”€ helpers/
+â”‚   â”œâ”€â”€ temp-project.ts          # Scaffolds a throwaway project dir
+â”‚   â”œâ”€â”€ state-fixtures.ts        # Pre-built workflow-state.json stubs
+â”‚   â”œâ”€â”€ manifest-fixtures.ts     # Pre-built intake-manifest.json stubs
+â”‚   â”œâ”€â”€ run-script.ts            # Spawns node script, captures stdout/exit
+â”‚   â”œâ”€â”€ git-sandbox.ts           # Creates/destroys git worktree per test
+â”‚   â””â”€â”€ schemas/
+â”‚       â”œâ”€â”€ workflow-state.schema.json
+â”‚       â””â”€â”€ intake-manifest.schema.json
+â”œâ”€â”€ fixtures/
+â”‚   â”œâ”€â”€ intake/                  # Sample FRS docs, manifests
+â”‚   â”œâ”€â”€ design/                  # Sample api-specs, tokens
+â”‚   â”œâ”€â”€ stories/                 # Sample epic/story files
+â”‚   â””â”€â”€ prototypes/              # Sample v1 and v2 prototype imports
+â”œâ”€â”€ scripts/
+â”‚   â”œâ”€â”€ transition-phase.test.ts
+â”‚   â”œâ”€â”€ detect-workflow-state.test.ts
+â”‚   â”œâ”€â”€ validate-phase-output.test.ts
+â”‚   â”œâ”€â”€ quality-gates.test.ts
+â”‚   â”œâ”€â”€ collect-dashboard-data.test.ts
+â”‚   â”œâ”€â”€ generate-dashboard-html.test.ts
+â”‚   â”œâ”€â”€ generate-progress-index.test.ts
+â”‚   â”œâ”€â”€ generate-todo-list.test.ts
+â”‚   â”œâ”€â”€ generate-traceability-matrix.test.ts
+â”‚   â”œâ”€â”€ scan-doc.test.ts
+â”‚   â”œâ”€â”€ copy-with-header.test.ts
+â”‚   â”œâ”€â”€ init-preferences.test.ts
+â”‚   â””â”€â”€ import-prototype.test.ts
+â”œâ”€â”€ hooks/
+â”‚   â”œâ”€â”€ bash-permission-checker.test.ts
+â”‚   â”œâ”€â”€ claude-md-permission-checker.test.ts
+â”‚   â””â”€â”€ powershell/             # Pester tests
+â”‚       â”œâ”€â”€ workflow-guard.Tests.ps1
+â”‚       â”œâ”€â”€ inject-phase-context.Tests.ps1
+â”‚       â””â”€â”€ capture-context.Tests.ps1
+â”œâ”€â”€ consistency/
+â”‚   â”œâ”€â”€ agents-frontmatter.test.ts   # Every agent .md has name/description/model/tools
+â”‚   â”œâ”€â”€ commands-frontmatter.test.ts
+â”‚   â”œâ”€â”€ settings-schema.test.ts
+â”‚   â””â”€â”€ cross-doc-references.test.ts # README agent list matches agents/
+â”œâ”€â”€ schemas/
+â”‚   â”œâ”€â”€ workflow-state.test.ts
+â”‚   â””â”€â”€ intake-manifest.test.ts
+â””â”€â”€ integration/
+    â”œâ”€â”€ full-happy-path.test.ts      # Scripted INTAKE â†’ COMPLETE
+    â”œâ”€â”€ resume-from-each-phase.test.ts
+    â””â”€â”€ phase-boundary.test.ts
+```
+
+## 4. Reusable Helpers I'd Build First
+
+These unlock everything else â€” build them before any test:
+
+1. **`createTempProject()`** â€” copies `.claude/scripts/`, `.claude/policies/`, etc. into a `os.tmpdir()` dir, returns `{ root, cleanup }`. Every test gets its own root. This is the single biggest investment.
+2. **`seedState(root, state)`** â€” writes `generated-docs/context/workflow-state.json` with a given phase/epic/story.
+3. **`seedManifest(root, overrides)`** â€” writes a valid intake-manifest with overrides.
+4. **`seedArtifact(root, kind, content?)`** â€” writes FRS / api-spec / story file with sensible defaults.
+5. **`runScript(root, path, args[])`** â€” `spawn` wrapper returning `{ stdout, stderr, exitCode, parsedJson }`.
+6. **`gitSandbox(root)`** â€” `git init`, sets user, returns a commit helper.
+7. **`snapshot(name, value)`** â€” wraps Vitest's snapshot for dashboard HTML and state transitions.
+
+## 5. Isolation Strategy â€” Answer to Your Branch Question
+
+You mentioned branches. Here's my take:
+
+**Don't use git branches per test.** Branches are slow, they fight each other on shared working directory, and parallel tests step on each other.
+
+**Do use `os.tmpdir()` + per-test directory.** Each test creates its own throwaway project root. That gives you:
+- True independence (no shared state)
+- Parallel safe (Vitest defaults to parallel)
+- Fast (hundreds of ms, not seconds)
+- Easy cleanup (just `rm -rf` the temp dir)
+
+**Where git matters** â€” the few tests that check `git add` / commit behaviour in `transition-phase.js` and `code-reviewer` simulation. For those, `git init` inside the temp dir is plenty. You don't need worktrees of the real repo.
+
+**Exception:** if you want to test "does CLAUDE.md still make sense after a template sync?", that genuinely needs a worktree. Rare though.
+
+## 6. Test Shape â€” AAA With Hooks
+
+Per your brief (each test independent, own setup/teardown):
+
+```
+describe('transition-phase.js')
+  beforeAll   â†’ once: resolve paths, load schemas
+  beforeEach  â†’ createTempProject(); seedState()
+  afterEach   â†’ cleanup()
+  afterAll    â†’ (nothing usually)
+
+  it('advances INTAKE â†’ DESIGN when FRS exists')
+    arrange   â†’ seed FRS file
+    act       â†’ runScript(root, 'transition-phase.js', ['--to', 'DESIGN'])
+    assert    â†’ exitCode 0; state.currentPhase === 'DESIGN'
+```
+
+Keep each test **< 100ms** where possible. State-machine tests should be sub-10ms.
+
+## 7. Minimum-Work Scenarios
+
+For each script, the matrix is roughly:
+- **Happy path** (1 test)
+- **Each error branch** (1 test each)
+- **Each status output** (`ok` / `error` / `warning`) (1 test each)
+- **Idempotency** (run twice, second is `status: "exists"`)
+
+For `transition-phase.js` that's ~20 tests. For `quality-gates.js` probably 10. For `bash-permission-checker.js` the permission matrix is table-driven â€” one `it.each([...])` with maybe 40 rows covering allow/deny/prompt.
+
+Resist temptation to test every combination of phases Ã— epics Ã— stories. Property-based testing (via `fast-check`) is a better fit if you want that coverage.
+
+## 8. Things You Haven't Mentioned â€” Worth Adding
+
+1. **Snapshot tests for dashboard HTML.** Regenerating the dashboard from a known state should produce byte-identical output (modulo timestamps). Catches accidental template changes.
+2. **JSON schema tests.** Write a formal schema for `workflow-state.json` and `intake-manifest.json`; validate every fixture. Protects against silent schema drift.
+3. **Doc-lint / consistency tests.** The biggest rot in a template like this is the docs drifting from reality. Test that:
+   - Every file in `.claude/agents/` has valid frontmatter and a matching entry in `.claude/agents/README.md`
+   - Every `/command` referenced in CLAUDE.md exists in `.claude/commands/`
+   - Every `subagent_type` referenced in orchestrator-rules.md matches a real agent file
+   - The agent list in root `README.md` matches the files on disk
+4. **Permission-hook fuzzing.** `bash-permission-checker.js` is security-critical. Run it against 200+ adversarial inputs (`rm -rf /` variants, encoded, with whitespace, etc.). Use a fuzz harness.
+5. **Post-compaction hook test.** `inject-phase-context.ps1` is load-bearing for long sessions. Test it returns the correct phase-context file for each phase.
+6. **Cross-platform CI matrix.** Run the Node tests on `ubuntu-latest` and `windows-latest`. Path handling is the #1 source of flakiness.
+7. **Performance budgets.** `quality-gates.js --auto-fix` should finish under a known time on a fixed repo. Guard against accidental NÂ² walks. Log the duration; fail if > 2Ã— baseline.
+8. **Golden-file tests for generated artifacts.** For `import-prototype.js` v1 and v2, keep a canned input fixture and assert the output tree matches a golden snapshot.
+9. **State-machine invariants** (property-based with `fast-check`):
+   - "Any phase sequence the state machine accepts is also accepted by `--repair` from the resulting artifacts"
+   - "`--show` after `--init X` reports phase X"
+10. **Test the test-runner itself.** Keep one canary test that deliberately fails (`.skip`'d) â€” if CI ever goes green without running it, the harness is broken.
+11. **Dry-run mode.** Consider adding `--dry-run` to `transition-phase.js` and `quality-gates.js`. Makes integration tests vastly cheaper because you can test logic without side effects.
+12. **Hook-off mode for tests.** Add an env var like `CLAUDE_TEST_MODE=1` that disables the logging hook during tests â€” otherwise every test will spam `.claude/logs/`. Or point `CLAUDE_PROJECT_DIR` at the temp project so logs go there and get cleaned up.
+
+## 9. What I'd Skip (At Least Initially)
+
+- **Testing the AI itself.** You can't reliably unit-test "does Claude generate the right code?" â€” that's for eval harnesses, not unit tests. If you need that, it's a separate project using Anthropic's eval tooling.
+- **Testing agent prompt contents.** Too brittle; they change often. Stick to structural checks (frontmatter valid, tools whitelisted).
+- **End-to-end with a real LLM call.** Expensive and flaky. Mock the `Agent` tool boundary; assert the *prompt shape*, not the response.
+
+## 10. Proposed Rollout in 3 Waves
+
+If you try to do all 9 categories at once it'll stall. I'd sequence it:
+
+- **Wave 1 (1â€“2 days):** Helpers + state machine (A) + JSON schemas (H). Biggest risk reduction per hour. ~40 tests.
+- **Wave 2 (1â€“2 days):** Permission hooks (E) + PowerShell hooks (F) + consistency lints (G). Security + doc drift. ~60 tests.
+- **Wave 3 (2â€“3 days):** Quality gates (B) + generators (C) + utilities (D) + integration (I). The expensive stuff. ~50 tests.
+
+Target ~150 tests total, ~30 second full suite, ~5 second watch-mode feedback on the hot paths.
+
+---
+
+Want me to kick this off by scaffolding Wave 1 (helpers + the first transition-phase tests) so you can see the shape? Or would you rather pick a different starting point first?
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-21 11:09Z)**_
+
+Wrire all this to a md file
+
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Write_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Written to [TEST-STRATEGY.md](TEST-STRATEGY.md) at the project root.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-21 11:11Z)**_
+
+Now read test-guide and test-inputs.  Are they different to what you have proposed?  Can you borrow ideas from them to improve the test-strategy.md?Don't do any work.  Just suggest.
+
+
+_**Agent (model claude-opus-4-7)**_
+
+Let me find those files first.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Found them. Reading now.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Count lines in TEST-GUIDE.md
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+It's a 3189-line document. Let me read it in sections to understand the structure.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Read both. Here's my honest read.
+
+## Short Answer
+
+**They're not duplicates â€” they're complementary.** Mine tests *scripts and hooks* (unit-level, Node/PowerShell, pure automation). Theirs tests *Claude's live behaviour* (system-level, needs a real Claude Code session). There's almost no overlap â€” they fit together as two layers of the same pyramid.
+
+But the existing docs have genuinely good ideas I missed, and they surface behaviours worth testing that I completely overlooked.
+
+## What They Have That I Don't
+
+### Test fixtures done right
+- **Team Task Manager scenario** in TEST-INPUTS.md is a deliberately designed end-to-end fixture â€” two roles (RBAC), clear data model, no existing API spec (forces generation), backend-in-development (forces mocks), two epics Ã— two stories (exercises story-to-story and epic-to-epic transitions), no compliance (keeps the test path simple). I'd been planning to invent fixtures from scratch â€” borrow this instead.
+- **Variants Aâ€“F** for specific code paths (BFF auth, no-backend, user-provided spec, TypeScript error injection, FRS-override, discovered impacts). This maps cleanly onto parameterised tests.
+
+### Three conventions worth stealing outright
+1. **State Checkpoints CP-0 through CP-6** â€” named starting states ("INTAKE complete, context cleared"). In my suite, serialise each as a tarball fixture so integration tests can unpack instead of running the whole workflow from scratch.
+2. **Rollback IDs RB-0 through RB-7** â€” standardised cleanup recipes. My `afterEach` blocks should cite which rollback they perform; makes intent explicit.
+3. **"Minimum steps to PASS" AND "Minimum steps to FAIL"** for every test. This is the one I most regret leaving out. It's the difference between a test that asserts *something* and a test that demonstrably distinguishes pass from fail. Every test I write should have both paths.
+
+### The big one I completely missed â€” Tier 2 log-replay testing
+
+The guide mentions a planned `verify-session-behavior.js` that parses `.claude/logs/*.md` and asserts on tool-call order. This is brilliant and bridges the gap between my purely mechanical tests and their fully live tests:
+
+- A human runs `/start` once with the scripted answers
+- The session log captures every tool call, every prompt, every response â€” in order
+- A parser then makes dozens of assertions against the log, *without* Claude running again:
+  - "`generate-dashboard-html.js --collect` fires before the `/clear + /continue` instruction"
+  - "the developer agent was called exactly twice per IMPLEMENT phase"
+  - "`AskUserQuestion` was not used for the elevator-pitch prompt"
+  - "`[Logs saved]` appears as the last line of every response"
+  - "parent made â‰¤ 3 tool calls before delegating to coordinator"
+
+This should be **Tier 2 in my strategy, between the pure-unit and the live tests.** One expensive human run â†’ many cheap log assertions â†’ replayable forever.
+
+### Behaviours I hadn't thought to test at all
+Reviewing their 38 tests, here's what I was going to miss:
+
+| Test | What it catches |
+|---|---|
+| 1 | `[Logs saved]` missing â†’ logging hook silently broken |
+| 2 | Claude stopping after setup instead of flowing into workflow |
+| 3aâ€“3j | Dashboard update **timing** (fires before clearing instruction, per-agent not per-phase, after Call B not Call A, failure non-blocking) |
+| 5 | Q3 presented as combined two-header question, not split into two prompts |
+| 7 | Two-step approval â€” summary text appears before `AskUserQuestion` |
+| 17 | WRITE-TESTS doesn't start before user approves test-design |
+| 18 | Tests actually fail in TDD red phase (otherwise TDD isn't happening) |
+| 22 | Orchestrator delegates fixes â€” doesn't fix directly (the dispatcher-pattern bug guard) |
+| 26 | Parent orchestrator stays under 3 tool calls before coordinator (hook-dispatch bug guard) |
+| 29 | NextAuth removed when FRS requires BFF â€” not coexisting |
+| 31 | API paths match spec exactly â€” no guessed URLs |
+| 33 | No `@ts-ignore` / `eslint-disable` anywhere in `web/src/` |
+| 34 | Plain-language policy â€” no "Gate 3", "tsc", "ESLint" in user-facing text |
+| 38 | Every story file declares a `**Role:**` field |
+
+Most of these are either behavioural (need Claude) or artifact-lint (grep-style checks I can automate). Either way, my strategy didn't list them.
+
+### Small but useful conventions
+- **Legend symbols** â€” âœ… pass, âŒ intentional fail, âš ï¸ needs dev server. My tests should tag `@unit`, `@integration`, `@requires-claude`, `@requires-server` so selective runs are trivial.
+- **Per-test "Depends on"** field (e.g. `Depends on: CP-4`) â€” makes the required starting state explicit. In my suite this becomes the fixture loaded in `beforeEach`.
+- **"Quick Reference â€” What Each Test Catches"** table at the bottom â€” one-line regression descriptions. Makes the suite readable for a newcomer or reviewer. I should add an equivalent.
+
+## What My Strategy Has That Theirs Doesn't
+
+Their guide focuses almost entirely on live behavioural checking. It doesn't cover:
+- JSON schema validation of `workflow-state.json` / `intake-manifest.json`
+- Doc-lint / static consistency (agent frontmatter, cross-file references between CLAUDE.md and settings.json)
+- PowerShell hooks in isolation (Pester tests for `workflow-guard.ps1`, `inject-phase-context.ps1`)
+- Permission-hook adversarial fuzzing (200+ inputs against `bash-permission-checker.js`)
+- Property-based invariant testing on the state machine
+- Cross-platform CI matrix (Windows + Linux path handling)
+- Performance budgets on `quality-gates.js`
+- Canary test to detect broken harness
+- Hook-off mode so tests don't spam `.claude/logs/`
+
+So there's real work my strategy adds â€” it's not redundant.
+
+## How I'd Update TEST-STRATEGY.md
+
+I'd restructure it into **three tiers** instead of treating everything as "unit tests":
+
+```
+Tier 1 â€” Pure automation (runs in CI, no Claude)
+  - All my current scripts/hooks/schemas/consistency tests
+  - PLUS grep-style artifact-lint tests from their guide
+    (suppression directives, role fields, api path matching, plain language)
+
+Tier 2 â€” Log replay (runs in CI after seed, no live Claude)
+  - verify-session-behavior.js parses committed .claude/logs/*.md
+  - Asserts tool-call order invariants, AskUserQuestion usage,
+    dashboard timing, [Logs saved] marker, dispatcher pattern limits
+  - Seed logs are harvested once per release by a human run,
+    committed to tests/fixtures/golden-logs/
+  - Re-harvest when the orchestrator rules change
+
+Tier 3 â€” Live behavioural (manual, occasional)
+  - Their existing 38-test guide, unchanged
+  - Run once per major template release
+  - Updates the golden logs for Tier 2
+```
+
+I'd also borrow:
+- **Team Task Manager + Variants Aâ€“F** as the canonical fixture set (replacing my generic fixtures)
+- **CP-0â€“CP-6 checkpoints** serialised as tarball fixtures for fast integration-test startup
+- **RB-0â€“RB-7** as named cleanup helpers
+- **PASS-path AND FAIL-path** for every test (the single most valuable convention they use)
+- Their **"Depends on" + "Variant"** metadata on every test
+- A **"What This Catches" regression table** at the bottom of the strategy
+
+## What I'd Actively Skip from Their Guide
+
+- **The manual Pass/Fail/Date/Notes box** â€” Vitest reports this. Keep it only on Tier 3 live tests.
+- **The inline `cat > file << EOF` setup scripts** â€” fine for a manual guide, but in automated tests these become fixture files.
+- **The CP-based sequential dependency** for Tier 1/2 â€” each test must be independently runnable (your original brief). Checkpoints are a speedup for integration tests, not a contract.
+
+## The Meta-Idea Worth Highlighting
+
+Their guide is structured around **observable behaviour** rather than **code under test**. Every test answers "what does a user see happen?" That's closer to acceptance testing than unit testing. It's the right framing for a template where most of the "code" is prompts and markdown â€” the product *is* the observed behaviour.
+
+My strategy was script-centric. I should shift my **integration** tier (Wave 3) toward their behaviour-centric framing, while keeping the **unit** tier (Waves 1â€“2) script-centric. That hybrid is stronger than either alone.
+
+## Bottom Line
+
+- **Keep my strategy's Waves 1â€“2 as-is** â€” they're filling a real gap.
+- **Gut and rewrite Wave 3** around the Team Task Manager scenario and the Tier 2 log-replay idea.
+- **Steal CP checkpoints, RB rollbacks, PASS+FAIL paths, and the log-replay concept** â€” these are genuinely better patterns than what I proposed.
+- **Add a companion Tier 3** that's just a pointer to their existing guide â€” no need to rewrite it.
+
+Want me to produce a merged `TEST-STRATEGY.md` v2 that incorporates all this, or would you rather keep v1 and add a new `TEST-STRATEGY-V2.md` / `TEST-STRATEGY-ADDENDUM.md` so the evolution is visible?
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-21 11:14Z)**_
+
+yes update TEST-STRATEGY.md
+
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Write_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Updated [TEST-STRATEGY.md](TEST-STRATEGY.md). Key changes from v1:
+
+- **Three-tier pyramid** replaces the flat unit-test model â€” Tier 1 pure automation, Tier 2 log-replay, Tier 3 points to `TEST-GUIDE.md`
+- **Borrowed** CP-0..CP-6 checkpoints, RB-0..RB-7 rollback IDs, Team Task Manager + Variants Aâ€“F as canonical fixtures, PASS+FAIL paths for every test, "What This Catches" regression table
+- **New Tier 2** â€” `verify-session-behavior.ts` harness that parses harvested `.claude/logs/` and asserts tool-call order / timing invariants, so most behavioural checks run in CI without live Claude
+- **New Tier 1 artifact-lint** category covering TEST-GUIDE tests 31â€“34 and 38 (suppression directives, API path exactness, Shadcn imports, plain language, role fields)
+- **Added** 12 reusable helpers (up from 7), new file tree with `tier-1-unit/`, `tier-2-log-replay/`, `tier-3-pointer.md`
+- **Target revised** from ~150 to ~190 tests (150 Tier 1 + 40 Tier 2), <45s full run
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-21 12:07Z)**_
+
+commit and push
+
