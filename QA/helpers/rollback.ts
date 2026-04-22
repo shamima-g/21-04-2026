@@ -27,7 +27,7 @@ export interface RollbackOptions {
 /**
  * Execute a rollback recipe against the given project root.
  *
- * Rollbacks in the Query suite are mostly no-ops because each test runs in an
+ * Rollbacks in the QA suite are mostly no-ops because each test runs in an
  * isolated temp dir that's removed by the temp-project cleanup. They exist
  * primarily to document what each test mutates — cite the ID in afterEach
  * even if the implementation is a no-op.
@@ -78,7 +78,7 @@ export function rollback(root: string, id: RollbackId, opts: RollbackOptions = {
       break;
 
     case 'RB-6':
-      // Reinstall node_modules — no-op; Query has its own deps, tests don't touch web/.
+      // Reinstall node_modules — no-op; QA has its own deps, tests don't touch web/.
       break;
 
     case 'RB-7':

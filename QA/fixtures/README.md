@@ -24,7 +24,7 @@ Tarball fixtures for `CP-0` through `CP-6`. Each is a `.tar` of `generated-docs/
 
 ```bash
 # From a real run that's reached the checkpoint:
-tar -cf Query/fixtures/checkpoints/CP-1.tar generated-docs/
+tar -cf QA/fixtures/checkpoints/CP-1.tar generated-docs/
 ```
 
 If the tarballs are absent, `loadCheckpoint()` falls back to synthesising a minimum checkpoint — enough for state-machine tests but not for full snapshot tests.
@@ -37,7 +37,7 @@ Re-harvest after changes to `.claude/shared/orchestrator-rules.md`:
 
 ```bash
 # After a full /start → commit live run:
-cp .claude/logs/<latest-session>.md Query/fixtures/golden-logs/
+cp .claude/logs/<latest-session>.md QA/fixtures/golden-logs/
 ```
 
 A stale-log canary test in Tier 2 warns if these get too far behind the orchestrator rules.

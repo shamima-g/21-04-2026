@@ -33,7 +33,7 @@ export function gitSandbox(cwd: string): GitSandbox {
 
   git('init', '-q');
   git('config', 'user.email', 'test@example.com');
-  git('config', 'user.name', 'Query Test');
+  git('config', 'user.name', 'QA Test');
   git('config', 'commit.gpgsign', 'false');
 
   const commit = (message: string, files: string[] = ['-A']) => {

@@ -1,4 +1,6 @@
-# Query — Test Suite for the Claude Code Workflow Template
+# QA — Test Suite for the Claude Code Workflow Template
+
+> **Naming note:** This folder is named `QA/` because it contains the quality-assurance test suite for the template infrastructure itself. **Do not confuse** this with the workflow's per-story **QA phase** (§ 9 of `CLAUDE.md`) — that phase runs inside the TDD workflow and is owned by the `code-reviewer` agent. These tests exist outside the workflow entirely; they verify the scripts, hooks, schemas, and agents that make the workflow work.
 
 Tests the **template itself** (scripts, hooks, schemas, agent/command definitions), not a feature built on top of it. Implements the three-tier strategy in `/TEST-STRATEGY.md`.
 
@@ -14,7 +16,7 @@ Tests the **template itself** (scripts, hooks, schemas, agent/command definition
 
 ```bash
 # From repository root
-cd Query
+cd QA
 npm install
 
 # All Tier 1 + Tier 2 tests
@@ -47,7 +49,7 @@ Every test follows `TEST-GUIDE.md` conventions:
 ## Folder Map
 
 ```
-Query/
+QA/
 ├── helpers/                  Reusable helpers (12 files)
 │   ├── temp-project.ts       createTempProject() — per-test tmpdir
 │   ├── checkpoint-fixtures.ts  loadCheckpoint() — CP-0..CP-6 starting states
@@ -83,7 +85,7 @@ Query/
 
 ## How It Runs Without Installing Into the Repo
 
-`Query/` is a **self-contained npm workspace** — its own `package.json` and `node_modules`. Tests import from the parent repo by path (`../.claude/scripts/...`). You never install anything into `/web` or `/` for the test suite to work.
+`QA/` is a **self-contained npm workspace** — its own `package.json` and `node_modules`. Tests import from the parent repo by path (`../.claude/scripts/...`). You never install anything into `/web` or `/` for the test suite to work.
 
 ## Current Status
 

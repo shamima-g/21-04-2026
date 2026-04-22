@@ -1,6 +1,6 @@
 # Tier 3 — Live Behavioural Tests
 
-Tier 3 is **not implemented in Query/**. It lives in the repository root as two documents:
+Tier 3 is **not implemented in QA/**. It lives in the repository root as two documents:
 
 - **`/TEST-GUIDE.md`** — 38 manual test cases with PASS/FAIL steps, verification commands, and rollback instructions
 - **`/TEST-INPUTS.md`** — canonical scripted answers for the Team Task Manager scenario and Variants A–F
@@ -18,7 +18,7 @@ Tier 3 is **not implemented in Query/**. It lives in the repository root as two 
 Every live run produces a `.claude/logs/<timestamp>-<slug>-<sessionid>.md` file. After a successful end-to-end run:
 
 ```bash
-cp .claude/logs/<session>.md Query/fixtures/golden-logs/YYYY-MM-DD-full-happy-path.md
+cp .claude/logs/<session>.md QA/fixtures/golden-logs/YYYY-MM-DD-full-happy-path.md
 ```
 
 Then run Tier 2 locally to confirm all invariants still hold. If any fail, either the change broke the workflow (fix the workflow) or it invalidated an invariant (update the invariant).

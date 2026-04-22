@@ -11,7 +11,7 @@ Harvested `.claude/logs/*.md` files from full end-to-end workflow runs. Tier 2 i
    ```
 3. Copy it here with a descriptive name and date:
    ```bash
-   cp .claude/logs/<session>.md Query/fixtures/golden-logs/2026-MM-DD-full-happy-path.md
+   cp .claude/logs/<session>.md QA/fixtures/golden-logs/2026-MM-DD-full-happy-path.md
    ```
 4. Commit the file. Golden logs ARE committed (see `.gitignore`).
 

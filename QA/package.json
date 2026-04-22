@@ -1,5 +1,5 @@
 {
-  "name": "query",
+  "name": "qa",
   "version": "0.1.0",
   "private": true,
   "description": "Test suite for the Claude Code workflow template (scripts, hooks, schemas, agents, commands). Three-tier structure per /TEST-STRATEGY.md.",

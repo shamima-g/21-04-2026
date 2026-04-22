@@ -9,7 +9,7 @@ When absent, `loadCheckpoint()` falls back to a synthesised minimum — enough f
 ```bash
 # After /start reaches the desired phase in a real repo:
 cd /path/to/repo
-tar -cf /path/to/Query/fixtures/checkpoints/CP-1.tar \
+tar -cf /path/to/QA/fixtures/checkpoints/CP-1.tar \
   generated-docs/context/intake-manifest.json \
   generated-docs/specs/feature-requirements.md
 
