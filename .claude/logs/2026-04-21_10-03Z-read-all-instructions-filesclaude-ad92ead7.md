@@ -1441,3 +1441,115 @@ _**User: shamima-g (2026-04-21 12:07Z)**_
 
 commit and push
 
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Show working tree status
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Show summary of unstaged changes
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Show recent commit history
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Stage test docs and session log
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Commit staged changes
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Push commits to remote
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Verify clean working tree
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Committed and pushed. Two commits shipped (the pre-existing `how it works` and the new `test strategy and guides`), working tree clean, branch up to date with `origin/main`.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-21 12:08Z)**_
+
+REad test-strategy.md and write the tests.  Create a folder named Query and write all your tests inside it.
+
+
+---
+
+## Session Resumed (2026-04-22 11:01Z)
+
+**Permission Mode:** 
+
+---
+
+
+---
+
+## Session Summary (Recovered from /clear)
+
+**Recovered:** 2026-04-22 11:01Z
+**Total Prompts:** 8
+**Tools Used:** Bash, Read, Write, Glob
+**Files Modified:** 46
+
+### Token Usage
+
+_Token usage data not available. Run `/context` during session to capture token usage._
+
+
+_**User: shamima-g (2026-04-22 11:01Z)**_
+
+resume the work
+
+
+#### Permission Request - 2026-04-22 11:04Z
+
+**Tool:** `Write`
+
+---
+
+
+_**User: shamima-g (2026-04-22 11:16Z)**_
+
+_Opened file: `c:\AI\21-04-2026\Query\tier-1-unit\schemas\workflow-state.test.ts`_
+
+commit and push
+
