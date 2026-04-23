@@ -15,8 +15,11 @@ describe('validate-phase-output.js — INTAKE phase', () => {
   beforeEach(() => { project = createTempProject(); });
   afterEach(() => { rollback(project.root, 'RB-0'); project.cleanup(); });
 
-  it('PASS: reports status ok when FRS exists', () => {
+  it('PASS: reports status ok when FRS + intake manifest both exist', () => {
+    // INTAKE requires BOTH intake-manifest.json and feature-requirements.md
+    // (see validate-phase-output.js `expected` list for the INTAKE phase).
     seedArtifact(project.root, 'frs');
+    seedArtifact(project.root, 'intake-manifest');
     const r = runScript(SCRIPT, ['--phase', 'INTAKE'], { cwd: project.root });
     const json = r.parsedJson as { status?: string } | undefined;
     // Valid outcomes: 'ok', 'valid', or a successful equivalent
@@ -36,7 +39,11 @@ describe('validate-phase-output.js — DESIGN phase', () => {
   afterEach(() => { rollback(project.root, 'RB-0'); project.cleanup(); });
 
   it('PASS: valid when api-spec.yaml is present and parses', () => {
+    // DESIGN validation is manifest-driven: without a manifest the script falls
+    // back to wireframe-only mode and reports invalid. Seed a manifest that
+    // declares api-spec (only) as the expected DESIGN artifact.
     seedArtifact(project.root, 'frs');
+    seedArtifact(project.root, 'intake-manifest');
     seedArtifact(project.root, 'api-spec');
     const r = runScript(SCRIPT, ['--phase', 'DESIGN'], { cwd: project.root });
     const json = r.parsedJson as { status?: string } | undefined;
@@ -45,6 +52,7 @@ describe('validate-phase-output.js — DESIGN phase', () => {
 
   it('FAIL: invalid when api-spec.yaml content is malformed YAML', () => {
     seedArtifact(project.root, 'frs');
+    seedArtifact(project.root, 'intake-manifest');
     seedArtifact(project.root, 'api-spec', '::::not valid yaml at all ::::\n  ::\n');
     const r = runScript(SCRIPT, ['--phase', 'DESIGN'], { cwd: project.root });
     const json = r.parsedJson as { status?: string } | undefined;

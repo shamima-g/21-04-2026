@@ -63,7 +63,13 @@ describe('settings.json hook files exist', () => {
 
   for (const relPath of hookPaths) {
     it(`PASS: hook file referenced in settings.json exists: ${relPath}`, () => {
-      const abs = path.join(REPO_ROOT, relPath);
+      // settings.json uses $CLAUDE_PROJECT_DIR / ${CLAUDE_PROJECT_DIR} as a
+      // project-root placeholder. At runtime Claude Code expands it; on disk
+      // the files live at REPO_ROOT, so strip the placeholder before joining.
+      const stripped = relPath
+        .replace(/^\$\{?CLAUDE_PROJECT_DIR\}?[\\/]/, '')
+        .replace(/^[\\/]/, '');
+      const abs = path.join(REPO_ROOT, stripped);
       expect(fs.existsSync(abs), `${abs} referenced in settings.json does not exist`).toBe(true);
     });
   }

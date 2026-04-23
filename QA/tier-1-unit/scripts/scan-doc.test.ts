@@ -22,16 +22,16 @@ describe('scan-doc.js — plain markdown file', () => {
 
     const r = runScript(SCRIPT, ['documentation/spec.md'], { cwd: project.root });
     expect(r.exitCode).toBe(0);
-    const json = r.json<{ lines?: number; type?: string; isBinary?: boolean }>();
+    const json = r.json<{ lines?: number; type?: string; binary?: boolean }>();
     expect(json.lines).toBeGreaterThanOrEqual(5);
-    expect(json.isBinary).toBeFalsy();
+    expect(json.binary).toBeFalsy();
   });
 
   it('FAIL: does not claim a text file is binary', () => {
     project.write('documentation/spec.md', '# Title\n\nBody content.\n');
     const r = runScript(SCRIPT, ['documentation/spec.md'], { cwd: project.root });
-    const json = r.parsedJson as { isBinary?: boolean } | undefined;
-    expect(json?.isBinary).not.toBe(true);
+    const json = r.parsedJson as { binary?: boolean } | undefined;
+    expect(json?.binary).not.toBe(true);
   });
 });
 
@@ -45,17 +45,17 @@ describe('scan-doc.js — binary file detection', () => {
     project.write('documentation/image.png', bin);
 
     const r = runScript(SCRIPT, ['documentation/image.png'], { cwd: project.root });
-    const json = r.parsedJson as { isBinary?: boolean; type?: string } | undefined;
-    expect(json?.isBinary).toBe(true);
+    const json = r.parsedJson as { binary?: boolean; type?: string } | undefined;
+    expect(json?.binary).toBe(true);
   });
 
   it('FAIL: does not attempt to count lines in a binary buffer as if it were text', () => {
     const bin = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0, 0]);
     project.write('documentation/image.png', bin);
     const r = runScript(SCRIPT, ['documentation/image.png'], { cwd: project.root });
-    const json = r.parsedJson as { isBinary?: boolean; lines?: number } | undefined;
+    const json = r.parsedJson as { binary?: boolean; lines?: number } | undefined;
     // If marked binary, lines should be 0 or omitted — not a huge spurious count.
-    if (json?.isBinary) {
+    if (json?.binary) {
       expect((json.lines ?? 0)).toBeLessThan(100);
     }
   });

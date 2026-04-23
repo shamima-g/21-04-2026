@@ -1,7 +1,7 @@
 /**
  * TEST-GUIDE.md Test 38 — Role Declaration in Story Metadata.
  *
- * Every generated-docs/stories/**/story-*.md must have a **Role:** field
+ * Every generated-docs/stories/<epic>/story-*.md must have a "Role:" field
  * with a non-empty, non-ambiguous value.
  */
 

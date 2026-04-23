@@ -1,9 +1,17 @@
 /**
  * Tests for .claude/hooks/claude-md-permission-checker.js
  *
- * Fires on Write/Edit/MultiEdit tool calls. Protects CLAUDE.md from silent
- * edits — the user should always know when Claude wants to modify the
- * master instructions file.
+ * The hook is a PreToolUse fast-path AUTO-APPROVER (see header of the hook):
+ *
+ *   - During INTAKE or DESIGN phases (where CLAUDE.md edits are part of the
+ *     expected workflow), it emits permissionDecision='allow' to skip the
+ *     permission prompt.
+ *   - Outside those phases — or when no workflow state exists, or when the
+ *     state file cannot be read — it FALLS THROUGH silently (exit 0, empty
+ *     stdout) so the normal permission prompt protects CLAUDE.md.
+ *
+ * It does NOT itself block or warn; user oversight comes from the fall-through
+ * path landing in the normal permission system.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -27,24 +35,27 @@ function runHook(input: object): { exitCode: number; stdout: string; stderr: str
 }
 
 describe('claude-md-permission-checker — protects CLAUDE.md', () => {
-  it('PASS: blocks or warns on a Write to CLAUDE.md', () => {
-    const { exitCode, stdout, stderr } = runHook({
+  it('PASS: falls through silently on a Write to CLAUDE.md when no workflow state exists', () => {
+    // No generated-docs/context/workflow-state.json in CWD → hook must NOT
+    // emit an auto-approve. Silent exit 0 means the normal permission prompt
+    // will appear and the user gets oversight.
+    const { exitCode, stdout } = runHook({
       tool_name: 'Write',
       tool_input: { file_path: '/some/path/CLAUDE.md', content: 'overwritten' },
     });
-    // Either denies (exit 2) or produces a warning message.
-    const raisedConcern =
-      exitCode === 2 ||
-      /claude\.md|permission|warn|block/i.test(stdout + stderr);
-    expect(raisedConcern).toBe(true);
+    expect(exitCode).toBe(0);
+    // No permissionDecision emitted → the hook declined to auto-approve.
+    expect(stdout).not.toMatch(/permissionDecision\s*"?\s*:\s*"?allow/);
   });
 
-  it('FAIL: does NOT block Writes to unrelated files', () => {
-    const { exitCode } = runHook({
+  it('FAIL: does NOT interfere with Writes to unrelated files', () => {
+    const { exitCode, stdout } = runHook({
       tool_name: 'Write',
       tool_input: { file_path: '/some/path/web/src/app/page.tsx', content: 'ok' },
     });
     expect(exitCode).toBe(0);
+    // Unrelated files → unconditional fall-through, no auto-approve output.
+    expect(stdout.trim()).toBe('');
   });
 });
 

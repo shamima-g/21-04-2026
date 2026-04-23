@@ -34,8 +34,9 @@ describe('init-preferences.js — initial write', () => {
     const prefsPath = path.join(project.root, '.claude', 'preferences.json');
     expect(fs.existsSync(prefsPath)).toBe(true);
     const prefs = JSON.parse(fs.readFileSync(prefsPath, 'utf8'));
-    expect(prefs.autoApproveCommit).toBe(true);
-    expect(prefs.autoApprovePush).toBe(false);
+    // Script nests flags under `git` (see init-preferences.js).
+    expect(prefs.git.autoApproveCommit).toBe(true);
+    expect(prefs.git.autoApprovePush).toBe(false);
   });
 
   it('FAIL: rejects non-boolean flag values', () => {
@@ -65,16 +66,16 @@ describe('init-preferences.js — idempotency', () => {
     // Should not crash; should report the file already exists or similar
     expect(r2.exitCode).toBe(0);
     const prefs = JSON.parse(fs.readFileSync(path.join(project.root, '.claude', 'preferences.json'), 'utf8'));
-    // Original values preserved
-    expect(prefs.autoApproveCommit).toBe(true);
-    expect(prefs.autoApprovePush).toBe(true);
+    // Original values preserved (flags nested under `git`)
+    expect(prefs.git.autoApproveCommit).toBe(true);
+    expect(prefs.git.autoApprovePush).toBe(true);
   });
 
   it('FAIL: --force overwrites, proving idempotency can be bypassed deliberately', () => {
     runScript(SCRIPT, ['--autoApproveCommit', 'true', '--autoApprovePush', 'true'], { cwd: project.root });
     runScript(SCRIPT, ['--force', '--autoApproveCommit', 'false', '--autoApprovePush', 'false'], { cwd: project.root });
     const prefs = JSON.parse(fs.readFileSync(path.join(project.root, '.claude', 'preferences.json'), 'utf8'));
-    expect(prefs.autoApproveCommit).toBe(false);
-    expect(prefs.autoApprovePush).toBe(false);
+    expect(prefs.git.autoApproveCommit).toBe(false);
+    expect(prefs.git.autoApprovePush).toBe(false);
   });
 });

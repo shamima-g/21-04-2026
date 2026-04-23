@@ -43,7 +43,7 @@ describe('transition-phase.js — --show', () => {
     const r = runScript(SCRIPT, ['--show'], { cwd: project.root });
     // Script may return status='error' or a specific 'no_state' marker.
     const combined = r.stdout + r.stderr;
-    expect(combined.toLowerCase()).toMatch(/no state|not found|missing|error/);
+    expect(combined.toLowerCase()).toMatch(/no[_ ]state|not found|missing|error/);
   });
 });
 
@@ -93,9 +93,11 @@ describe('transition-phase.js — idempotent behaviour', () => {
     const r = runScript(SCRIPT, ['--to', 'QA'], { cwd: project.root });
     // Must not report status: ok without actually moving.
     const stateAfter = readState(project.root);
-    const succeededButLied = r.parsedJson
+    const succeededButLied = Boolean(
+      r.parsedJson
       && (r.parsedJson as { status?: string }).status === 'ok'
-      && stateAfter.currentPhase !== 'QA';
+      && stateAfter.currentPhase !== 'QA'
+    );
     expect(succeededButLied).toBe(false);
   });
 });
@@ -113,7 +115,8 @@ describe('transition-phase.js — --repair', () => {
     const json = r.parsedJson as { status?: string } | undefined;
     // Must produce a JSON result, not crash.
     expect(json).toBeDefined();
-    expect(['ok', 'warning', 'error']).toContain(json?.status);
+    // 'repaired' is a distinct outcome the script emits after reconstructing state.
+    expect(['ok', 'warning', 'error', 'repaired']).toContain(json?.status);
   });
 
   it('FAIL: --repair in an empty project reports low confidence or error, not false ok', () => {

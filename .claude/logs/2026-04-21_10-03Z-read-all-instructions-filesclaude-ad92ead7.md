@@ -1558,3 +1558,383 @@ _**User: shamima-g (2026-04-22 11:17Z)**_
 
 resume
 
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Rename Query to QA preserving git history
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Rename moved the files â€” need to re-read them before editing.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Now I can do bulk replacements with `replace_all` since there are several occurrences per file.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Grep_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check staged state
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Stage content updates and session log
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Commit the rename
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Push the rename
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Pushed. Git tracked every move as a rename (mostly 100% similarity â€” the modified files show 86â€“97%), so history follows the files into `QA/`.
+
+Final state on `main`:
+- `40ce562` â€” test strategy and guides
+- `893dafa` â€” scaffold Query/ test suite
+- `3977ee9` â€” rename Query/ to QA/
+
+QA/README.md now also carries a naming note distinguishing this test suite from the workflow's per-story QA phase.
+
+[Logs saved]
+
+---
+
+
+---
+
+## Session Resumed (2026-04-22 14:20Z)
+
+**Permission Mode:** 
+
+---
+
+
+_**User: shamima-g (2026-04-22 14:20Z)**_
+
+resume the wok
+
+
+_**Agent (model claude-opus-4-7)**_
+
+The last task (rename + push) completed cleanly and is on `main`. Nothing was mid-flight when the chat paused.
+
+What would you like me to pick up? A few options worth considering:
+
+1. **Flesh out Tier 2 stubs** â€” 6 invariant tests (`askuser-not-for-text-input`, `q3-combined`, `realign-auto-completes`, `write-tests-gates-approval`, `issues-found-delegates`, `clearing-boundaries`) have structural skeletons. Making them real needs a harvested golden log in `QA/fixtures/golden-logs/`.
+2. **Harvest a golden log** â€” requires running `/start` â†’ ... â†’ commit end-to-end with the Team Task Manager scripted answers. Needs `npm install` to have happened first so the workflow can actually run.
+3. **Install QA deps and dry-run Tier 1** â€” `cd QA && npm install && npm test`. Will surface any wiring bugs in the scaffolded tests. Some will fail against the synthesised fixtures; that's useful feedback.
+4. **Add coverage I skipped** â€” the lib/ helpers under `.claude/scripts/lib/`, the existing `.tests.js` files in the repo, or `traceability-summary.js` and `test-phase-transitions.js` which I didn't write dedicated tests for.
+5. **Something else you had in mind** â€” tell me the target.
+
+Which of these â€” or something different?
+
+[Logs saved]
+
+---
+
+
+---
+
+## Session Summary (Recovered from /clear)
+
+**Recovered:** 2026-04-23 02:21Z
+**Total Prompts:** 14
+**Tools Used:** Bash, Read, Write, Glob, Grep, Edit
+**Files Modified:** 80
+
+### Token Usage
+
+_Token usage data not available. Run `/context` during session to capture token usage._
+
+
+---
+
+## Session Resumed (2026-04-23 02:21Z)
+
+**Permission Mode:** 
+
+---
+

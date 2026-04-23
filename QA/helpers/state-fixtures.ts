@@ -62,7 +62,7 @@ export function readState(root: string): WorkflowState {
 
 export function seedArtifact(
   root: string,
-  kind: 'frs' | 'api-spec' | 'feature-overview' | 'epic-overview' | 'story' | 'discovered-impacts',
+  kind: 'frs' | 'api-spec' | 'intake-manifest' | 'feature-overview' | 'epic-overview' | 'story' | 'discovered-impacts',
   content?: string,
   opts: { epicNum?: number; storyNum?: number; slug?: string } = {}
 ): string {
@@ -78,6 +78,20 @@ export function seedArtifact(
     case 'api-spec':
       relPath = 'generated-docs/specs/api-spec.yaml';
       defaultContent = `openapi: 3.0.3\ninfo:\n  title: Example\n  version: 1.0.0\npaths:\n  /api/example:\n    get:\n      responses:\n        '200':\n          description: ok\ncomponents: {}\n`;
+      break;
+    case 'intake-manifest':
+      // Minimal manifest with the top-level keys validate-phase-output.js checks for.
+      // By default it declares an API spec is expected; callers can override via `content`.
+      relPath = 'generated-docs/context/intake-manifest.json';
+      defaultContent = JSON.stringify({
+        context: { featureName: 'Example' },
+        artifacts: {
+          apiSpec: { generate: true },
+          wireframes: { generate: false },
+          designTokensCss: { generate: false },
+          designTokensMd: { generate: false },
+        },
+      }, null, 2);
       break;
     case 'feature-overview':
       relPath = 'generated-docs/stories/_feature-overview.md';
