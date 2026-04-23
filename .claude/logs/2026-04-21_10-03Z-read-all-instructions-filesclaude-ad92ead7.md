@@ -1938,3 +1938,31 @@ _Token usage data not available. Run `/context` during session to capture token 
 
 ---
 
+
+---
+
+## Session Summary (Recovered from /clear)
+
+**Recovered:** 2026-04-23 02:51Z
+**Total Prompts:** 14
+**Tools Used:** Bash, Read, Write, Glob, Grep, Edit
+**Files Modified:** 80
+
+### Token Usage
+
+_Token usage data not available. Run `/context` during session to capture token usage._
+
+
+---
+
+## Session Summary (Recovered from /clear)
+
+**Recovered:** 2026-04-23 02:51Z
+**Total Prompts:** 14
+**Tools Used:** Bash, Read, Write, Glob, Grep, Edit
+**Files Modified:** 80
+
+### Token Usage
+
+_Token usage data not available. Run `/context` during session to capture token usage._
+
