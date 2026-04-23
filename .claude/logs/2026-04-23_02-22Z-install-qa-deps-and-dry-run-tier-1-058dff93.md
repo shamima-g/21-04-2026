@@ -729,3 +729,413 @@ _**User: shamima-g (2026-04-23 02:53Z)**_
 
 commit and push
 
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check working tree
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Only session logs changed. Committing and pushing.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Commit session log updates and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Pushed as `6d884fc`. Working tree clean, `main` in sync with `origin/main`.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-23 02:55Z)**_
+
+Do you also consider giving me prompts to update the test-guide, test-inputs, test-strategy and how-it-works after a change in the template.
+
+
+_**Agent (model claude-opus-4-7)**_
+
+Good call â€” let me first check what's actually in those docs so the prompts are grounded in real content, not guesses.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check size of each doc
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Yes â€” good catch. Those four docs cross-reference each other (TEST-STRATEGY quotes CP/RB/Variant IDs from TEST-GUIDE and TEST-INPUTS) and they're Claude's own context when the workflow runs, so stale docs are arguably worse than stale tests. Here's a parallel kit, keyed to what's actually in each file.
+
+---
+
+## The four docs and what they cover
+
+| File | Lines | What it contains | Who reads it |
+|---|---|---|---|
+| `TEST-STRATEGY.md` | 460 | Three-tier pyramid, 9 test areas mapped to tiers, helper conventions, directory layout | You + Claude (planning the suite) |
+| `TEST-GUIDE.md` | 3,189 | 38 numbered tests with Setup / PASS / FAIL / How to Test / Rollback sections. RB-0..RB-7 rollback library. "What This Catches" regression table | You (running manual tier) + Claude (behavioral reference) |
+| `TEST-INPUTS.md` | 499 | Canonical Team Task Manager scenario + Variants Aâ€“F scripted answers | You (running tests) + Claude (fixture source) |
+| `HOW-IT-WORKS.md` | 573 | Architecture: phase machine, agent roles, hook flow, state files | You + Claude (onboarding + runtime context) |
+
+Because they reference each other, most template changes touch **two or three** of these. The prompts below are keyed to what changed in `.claude/`, not to individual docs.
+
+---
+
+## 1. The always-first prompt: detect doc drift
+
+Run this after any template change, before touching any individual doc.
+
+```
+The template under .claude/ has changed. Check the four template-level
+docs for drift:
+
+  TEST-STRATEGY.md
+  TEST-GUIDE.md
+  TEST-INPUTS.md
+  HOW-IT-WORKS.md
+
+For each doc, produce a table of:
+  - Line range that's now factually wrong
+  - What the doc currently claims
+  - What the template now does
+  - Severity: BREAKING (Claude would follow outdated instructions),
+    MISLEADING (humans would misread), COSMETIC (line numbers /
+    counts only)
+
+Don't edit anything. Report. I'll choose which to fix and in what
+order based on severity.
+```
+
+The severity classification matters because HOW-IT-WORKS drift actively misleads future Claude sessions (bad), while a stale line count in TEST-STRATEGY is noise (fine to defer).
+
+---
+
+## 2. New / renamed / removed script under `.claude/scripts/`
+
+```
+A script under .claude/scripts/ was <added | renamed | removed>:
+  <details>
+
+Update:
+
+  (1) TEST-STRATEGY.md Section 2 â€” the "9 categories" table (A-I)
+      maps scripts to tiers. Add/rename/remove the row. If a new
+      category is warranted, propose the letter and justify.
+  (2) TEST-STRATEGY.md Section 4 ("Proposed directory layout") â€”
+      the tier-1-unit/scripts/ listing.
+  (3) TEST-GUIDE.md â€” grep for the old script name; update or
+      remove any test steps that invoke it.
+  (4) HOW-IT-WORKS.md â€” if the script is part of the user-visible
+      workflow (phase transitions, dashboard, etc.), update the
+      description.
+
+Do NOT invent behavior â€” read the script header comment for its
+actual purpose. Show me the diffs before committing.
+```
+
+---
+
+## 3. New / changed phase in the workflow state machine
+
+The highest-blast-radius change, because every doc has phase-dependent sections.
+
+```
+The workflow state machine changed:
+  <describe: new phase added | phase renamed | transitions edited>
+
+This cascades through all four docs. Update in this order:
+
+  (1) HOW-IT-WORKS.md â€” the phase-machine section (diagram + prose).
+      This is the source of truth; get it right first.
+  (2) TEST-STRATEGY.md â€” the "State Checkpoints CP-0..CP-6" list
+      (section "Conventions borrowed from TEST-GUIDE.md") may need
+      a new checkpoint for the new phase.
+  (3) TEST-GUIDE.md â€” for each of the 38 tests, check whether:
+        - A new test is needed for the new phase
+        - An existing test's Setup / PASS / FAIL steps reference
+          an obsolete phase name
+        - The rollback (RB-0..RB-7) section needs a new recipe
+      Produce a checklist before editing en masse.
+  (4) TEST-INPUTS.md â€” if the canonical scenario or any Variant
+      exercises the changed phase, the scripted answers may need
+      new or removed entries.
+
+Then re-run the drift prompt (Prompt 1) to catch anything missed.
+```
+
+---
+
+## 4. New / renamed / removed agent under `.claude/agents/`
+
+```
+An agent changed in .claude/agents/:
+  <details>
+
+Update:
+
+  (1) HOW-IT-WORKS.md â€” the agent catalog section. Add/rename/remove
+      the entry; describe when the agent is spawned and by whom.
+  (2) TEST-GUIDE.md â€” grep for the old/new name. Any behavioral
+      test that asserts "subagent X was launched" references a
+      specific agent; update it.
+  (3) TEST-INPUTS.md â€” if the agent prompts the user for input
+      during its flow, the canonical / variant answers may need
+      updating.
+  (4) TEST-STRATEGY.md Section 2 â€” rarely needs changes for agent
+      edits, but check if the "Test Area" table mentions the agent.
+
+Read the agent's frontmatter description and tool list before
+writing â€” don't paraphrase from memory.
+```
+
+---
+
+## 5. New Variant or canonical-scenario change
+
+```
+The canonical test scenario changed:
+  <Variant A-F modified | new variant added | Team Task Manager
+  scenario replaced>
+
+  (1) TEST-INPUTS.md â€” this is the source of truth. Update the
+      scripted answers for the affected variant. Keep the existing
+      format (numbered-answer blocks per prompt).
+  (2) TEST-STRATEGY.md â€” Section "Conventions borrowed from
+      TEST-GUIDE.md" lists Variants A-F. Add/update the row.
+  (3) TEST-GUIDE.md â€” every test's "Variant" metadata field
+      references the variants. If a variant was removed or
+      renamed, update each affected test.
+  (4) QA/helpers/ â€” check if seedArtifact / seedManifest hardcodes
+      scenario-specific content (paths, feature names). Flag, don't
+      fix â€” fixture edits go through the QA prompt kit, not this one.
+
+TEST-INPUTS.md is where the new text *lives*; the other docs only
+*reference* it. Don't duplicate scenario prose across files.
+```
+
+---
+
+## 6. New hook or settings.json change
+
+```
+.claude/settings.json or .claude/hooks/ changed:
+  <new hook wired up | deny rule added | permission scope changed>
+
+Docs to update:
+
+  (1) HOW-IT-WORKS.md â€” the hook-flow section (which hooks fire
+      on which events, in what order). If a new hook is part of
+      the user-facing workflow, describe it.
+  (2) TEST-STRATEGY.md Section 2 â€” "Test Area E: Hooks" lists
+      each hook. Add/remove the row.
+  (3) TEST-GUIDE.md â€” the "Security invariants" group of tests
+      (around tests 30+) covers deny-list behavior. If deny rules
+      changed, add a test case entry with PASS / FAIL steps.
+
+Quote actual file paths and event names from settings.json â€” don't
+paraphrase.
+```
+
+---
+
+## 7. New rollback or checkpoint convention
+
+```
+A new rollback (RB-*) or checkpoint (CP-*) is needed because
+<reason: e.g., new phase introduced a new artifact that needs
+cleaning up>.
+
+  (1) TEST-GUIDE.md â€” the "Rollback Reference" section. Append
+      the new RB-<N> with a code block showing the cleanup
+      commands. Number sequentially after existing entries.
+  (2) TEST-STRATEGY.md â€” the borrowed-conventions section lists
+      RB IDs. Update the range.
+  (3) QA/helpers/rollback.ts â€” if the rollback is mechanised for
+      Tier 1 tests, add it there. This is code, not docs â€” flag
+      and defer to the QA prompt kit.
+
+For checkpoints, same pattern but with CP-* and the
+checkpoint-fixtures.ts file.
+```
+
+---
+
+## 8. Cross-doc consistency check (run after any of 2-7)
+
+After editing any doc, run this to catch ripple effects.
+
+```
+I just edited <DOC-NAME>. Verify the other three template-level
+docs are still consistent with it:
+
+  - Search for every cross-reference. The common ones:
+    * RB-<N>, CP-<N>, Variant <letter>
+    * Phase names (INTAKE, DESIGN, SCOPE, STORIES, REALIGN,
+      TEST-DESIGN, WRITE-TESTS, IMPLEMENT, QA, COMPLETE)
+    * Script / agent / hook filenames
+    * Tier 1 / Tier 2 / Tier 3 references
+
+  - Flag any place where a reference now points at something that
+    doesn't exist in the updated doc, or where the updated doc
+    contradicts another doc.
+
+Don't fix cross-doc conflicts silently â€” list them and let me
+decide which doc is correct.
+```
+
+The "let me decide" line is the important one. When HOW-IT-WORKS says one thing and TEST-GUIDE says another, it's rarely obvious which was intended â€” often the mismatch is the sign of an underlying decision that was never made.
+
+---
+
+## 9. The "accept the new reality" escape hatch
+
+When a batch of drift is all genuine follow-the-template work:
+
+```
+Accept the following as intentional template changes, and update
+the docs accordingly:
+  <list of drift items from Prompt 1's report>
+
+Minimal edits only â€” preserve prose style, don't rewrite sections
+that merely needed a name changed. Update "Prepared" dates at the
+top of TEST-GUIDE.md and any similar metadata. Commit each doc as
+a separate commit with a focused message so it's easy to review
+or revert individually.
+```
+
+The separate-commit rule matters â€” these docs are long and mixing unrelated edits makes `git blame` useless later.
+
+---
+
+## How this fits with the QA kit
+
+You now have two kits:
+
+- **QA kit (7 prompts)** â€” keeps `QA/**/*.test.ts` in sync with `.claude/`.
+- **Docs kit (this one, 9 prompts)** â€” keeps `TEST-*` and `HOW-IT-WORKS` in sync with `.claude/`.
+
+Typical order after a template change:
+1. **Docs prompt 1** â†’ drift report
+2. **QA prompt 1** â†’ triage report
+3. Fix HOW-IT-WORKS first if it's wrong (it's the source-of-truth doc Claude reads as context).
+4. Fix QA tests that reference now-correct behavior.
+5. Fix TEST-STRATEGY / TEST-GUIDE / TEST-INPUTS.
+6. **Docs prompt 8** â†’ cross-consistency check.
+7. **Docs prompt 9** for stragglers.
+
+Want me to save both kits as checked-in markdown somewhere (e.g., `.template-docs/maintenance/`) so they're discoverable later instead of scattered across session logs? Say the word and I'll do it.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-23 02:58Z)**_
+
+let, name it as QA-MAINTENANCE
+
+
+#### Permission Request - 2026-04-23 03:00Z
+
+**Tool:** `Write`
+
+---
+
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Write_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Saved as `QA-MAINTENANCE.md` at repo root (alongside `TEST-STRATEGY.md`, `TEST-GUIDE.md`, `TEST-INPUTS.md`, `HOW-IT-WORKS.md` â€” they're the natural siblings).
+
+**Structure:**
+- Preamble â€” why this file exists, guiding principles, recommended order
+- **Part 1: QA kit** (Q1â€“Q9) â€” `QA/` test/helper maintenance
+- **Part 2: Docs kit** (D1â€“D9) â€” TEST-STRATEGY / TEST-GUIDE / TEST-INPUTS / HOW-IT-WORKS maintenance
+- Appendix â€” table of which failure mode each prompt prevents
+
+Want me to commit and push?
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-23 03:01Z)**_
+
+_Opened file: `c:\AI\21-04-2026\TEST-STRATEGY.md`_
+
+YES
+
