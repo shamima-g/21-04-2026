@@ -211,3 +211,133 @@ _**User: shamima-g (2026-04-23 02:39Z)**_
 
 commit and save all files
 
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check working tree status
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Get diff stat for modified files
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Recent commit style
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check if lockfile is gitignored
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Staging specifically (avoiding `git add -A`), then committing with a message covering the test-code fixes.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Stage all modified and new files
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Commit QA test-code fixes
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Verify clean state and commit landed
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Committed as `f780716`: 13 files, tree clean, 1 commit ahead of `origin/main`. Not pushed â€” push separately when you're ready.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-23 02:46Z)**_
+
+I have not understood what you mean by:
+
+"Four of five are straightforward docs updates. One is a policy extension. All low-risk. Want me to take them in one pass, or would you like to review the deny-list change (#1) separately since it affects runtime permission behavior"?
+
+What work will you do.  Explain don't do any work
+
+
+_**Agent (model claude-opus-4-7)**_
+
+Sure, here's the breakdown without doing any of it.
+
+**Five remaining failures, split into two kinds of work:**
+
+### Kind 1 â€” docs updates (4 of the 5 failures)
+
+These are just text edits to markdown files. Nothing executable changes.
+
+1. **`.claude/agents/README.md`** â€” the file already lists most agents but is missing entries for `mock-setup-agent` and `spec-compliance-watchdog`. I'd add two lines describing what each agent does, in the same format as the existing entries.
+
+2. **`.claude/commands/api-go-live.md`** â€” the file has YAML frontmatter at the top (between `---` markers) but is missing the `description:` field. I'd add one line like `description: Promote the feature's API integration from mock to live backend` or similar.
+
+3. **`.claude/commands/api-mock-refresh.md`** â€” same problem, same fix: add a `description:` line to the frontmatter.
+
+4. **Root `README.md`** â€” lists some agents but doesn't mention these five: `mock-setup-agent`, `prototype-review-agent`, `spec-compliance-watchdog`, `test-designer`, `type-generator-agent`. I'd add them to whatever agent table/list is already in the README.
+
+All four are low-risk â€” no code runs, no behavior changes. A reader of the docs gets a more complete picture, that's it.
+
+### Kind 2 â€” policy extension (the 5th failure)
+
+5. **`.claude/settings.json` deny list** â€” the file currently denies `cat`, `type`, `Get-Content`, and `sed` when the target contains `id_rsa`, `.pem`, or `credentials`. It does NOT deny `grep`. The failing test case is `grep password credentials.json` â€” i.e., using grep to read credential files. To fix it I'd add three entries (one per credential-filename pattern):
+
+```
+"Bash(*grep*id_rsa*)"
+"Bash(*grep*.pem*)"
+"Bash(*grep*credentials*)"
+```
+
+### Why I called #5 out separately
+
+The first four just update what docs say. The fifth changes what Claude Code will actually do at runtime: the next time any command matching those patterns is attempted in this project, the permission system will auto-deny it instead of asking. That's almost certainly what you want (grep can read files too, so the existing cat/sed/type rule is just incomplete), but it's a behavior change, not a docs change, so I wanted you to decide rather than rolling it in silently with the docs edits.
+
+**So when I asked "one pass or separately":**
+- "One pass" = I do all 5 fixes in one commit.
+- "Separately" = I do the 4 docs fixes in one commit, then show you the deny-list diff for approval before committing it.
+
+Your call. No work done yet.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-23 02:47Z)**_
+
+commit and push
+
