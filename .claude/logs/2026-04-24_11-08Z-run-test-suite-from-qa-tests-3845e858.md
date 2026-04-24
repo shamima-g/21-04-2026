@@ -663,3 +663,145 @@ _**User: shamima-g (2026-04-24 11:34Z)**_
 
 commit and push
 
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check git status
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Commit and push session log
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Pushed â€” `563e44c` on `origin/main`. Only the session log had changed since the last push.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-24 11:35Z)**_
+
+So if I carry the QAtests folder in another folder having the same template, I will be able to run it?
+
+
+_**Agent (model claude-opus-4-7)**_
+
+Short answer: **Yes, with conditions** â€” QA-TESTS is designed to be portable via the parent repo's layout. Let me verify exactly what it expects.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check REPO_ROOT resolution
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Good â€” `REPO_ROOT` auto-resolves to QA-TESTS's parent directory. Let me confirm what the target repo must provide.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Find all paths tests read from REPO_ROOT
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Grep_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+## Yes â€” QA-TESTS is portable, with 3 conditions
+
+QA-TESTS is already designed for this: it has its own `package.json`, its own `node_modules/`, its own `vitest.config.ts`, and it auto-resolves `REPO_ROOT` to its parent directory (see [temp-project.ts:15-17](QA-TESTS/helpers/temp-project.ts#L15-L17)). Drop it into a sibling of a template clone and run.
+
+### What the target repo MUST provide
+
+Every test reads from `REPO_ROOT/â€¦`. The tests expect:
+
+**Hard requirements** (tests read these directly):
+- [.claude/agents/](c:/AI/21-04-2026/.claude/agents/) â€” all agent `.md` files + `README.md`
+- [.claude/commands/](c:/AI/21-04-2026/.claude/commands/) â€” all command `.md` files
+- [.claude/hooks/bash-permission-checker.js](c:/AI/21-04-2026/.claude/hooks/bash-permission-checker.js)
+- [.claude/hooks/claude-md-permission-checker.js](c:/AI/21-04-2026/.claude/hooks/claude-md-permission-checker.js)
+- [.claude/hooks/*.ps1](c:/AI/21-04-2026/.claude/hooks/) (workflow-guard, inject-agent-context, inject-phase-context, capture-context)
+- [.claude/scripts/*.js](c:/AI/21-04-2026/.claude/scripts/) â€” all tested scripts
+- [.claude/policies/](c:/AI/21-04-2026/.claude/policies/), [.claude/shared/orchestrator-rules.md](c:/AI/21-04-2026/.claude/shared/orchestrator-rules.md), [.claude/settings.json](c:/AI/21-04-2026/.claude/settings.json)
+- [CLAUDE.md](c:/AI/21-04-2026/CLAUDE.md) and [README.md](c:/AI/21-04-2026/README.md) at the repo root
+
+**Optional** (tests skip or adapt if missing):
+- `web/src/` â€” shadcn-imports and no-suppression lints only run if present
+- `generated-docs/stories/`, `generated-docs/qa/`, `generated-docs/specs/api-spec.yaml` â€” artifact lints skip if missing
+
+### The 3 conditions that could trip you up
+
+1. **Runtime deps on the host machine:**
+   - Node 20+ (for vitest)
+   - PowerShell 7+ with Pester 5 module installed (for `test:pester`)
+   - `npm install` inside QA-TESTS/ once â€” or copy the `node_modules/` folder with it (~200 MB; `.gitignored`, so won't travel with git)
+
+2. **Template version drift:**
+   The consistency tests compare the README index against actual agent/command files on disk. If the target repo is on an older template version (missing agents that the newer README lists, or vice-versa), those tests will fail. This is the same class of failure we just fixed â€” not a bug, just the consistency check doing its job.
+
+3. **The hook fixes I made today aren't yet in older template copies:**
+   If you drop today's QA-TESTS into an older template that still has the **pre-change** `workflow-guard.ps1` (no `CLAUDE_PROJECT_DIR` override) or the **pre-change** `bash-permission-checker.js` (narrow credentials pattern), the 5 tests we just turned green will go red again. This is tautological â€” the template and QA-TESTS have to move together. Either pull both from the same commit, or backport the two hook edits into the older template.
+
+### Practical recipe
+
+```bash
+# From the target template repo root:
+cp -r /path/to/21-04-2026/QA-TESTS ./QA-TESTS
+cd QA-TESTS
+npm install
+npm test            # vitest tier 1 + tier 2
+npm run test:pester # PowerShell hooks
+```
+
+Expect some consistency tests to fail if the target template's docs are stale relative to its agent/command files on disk â€” that's the test doing its job, not a portability bug.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-24 11:38Z)**_
+
+commit and psuh
+
