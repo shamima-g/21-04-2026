@@ -182,6 +182,7 @@ These are ALL development requests that require the TDD workflow.
 - Questions about the workflow itself ("What phase are we in?", "How does /start work?")
 - Conversation during an active `/start` or `/continue` flow (e.g., answering AskUserQuestion prompts, providing requirements, approving epics)
 - File or documentation reading requests
+- Template-test maintenance in `QA-TESTS/` — adding/editing Pester tests, Vitest tests, helpers, or fixtures that exercise the workflow template itself. This is template infrastructure, not feature work. (Feature tests in `web/src/__tests__/` still follow the TDD workflow.)
 
 **Key principle:** When in doubt, redirect. It is always better to enter the workflow and discover the request is small than to write untracked, untested code outside it. The workflow handles everything from one-line fixes to multi-epic features.
 
