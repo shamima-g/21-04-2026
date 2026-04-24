@@ -24,12 +24,14 @@ INTAKE (once) → DESIGN (once) → SCOPE (epics only) → [STORIES → [REALIGN
 | **DESIGN** | design-style-agent | Generate CSS design tokens and style reference guide (conditional per manifest) |
 | **DESIGN** | design-wireframe-agent | Generate text-based wireframes for UI screens (conditional per manifest) |
 | **DESIGN** | type-generator-agent | Generate TypeScript types and typed endpoint functions from OpenAPI spec (conditional — when spec exists) |
+| **DESIGN** | mock-setup-agent | Generate MSW mock handlers and browser mock infrastructure from OpenAPI spec (conditional per manifest) |
 | **SCOPE** | feature-planner | Define ALL epics upfront (no stories yet) |
 | **STORIES** | feature-planner | Define stories for the current epic only |
 | **REALIGN** | feature-planner | Revise upcoming story based on discovered impacts (per story) |
 | **TEST-DESIGN** | test-designer | Design specification-by-example test scenarios for BA review (per story) |
 | **WRITE-TESTS** | test-generator | Write failing tests before implementation (per story) |
 | **IMPLEMENT** | developer | Implement code to make tests pass (per story) |
+| **QA** | spec-compliance-watchdog | Verify implementation matches spec/story/test-design docs, resolve drift (per story) |
 | **QA** | code-reviewer | Review code quality, run quality gates, commit (per story) |
 
 ---
@@ -157,6 +159,24 @@ INTAKE (once) → DESIGN (once) → SCOPE (epics only) → [STORIES → [REALIGN
 
 ---
 
+### 3e. Mock Setup Agent
+
+**File:** [mock-setup-agent.md](mock-setup-agent.md)
+
+**Purpose:** Generates MSW mock handlers from the canonical OpenAPI spec and wires up the browser mock infrastructure. Lets the frontend iterate against deterministic mock data before the live backend is ready, then switches over via `/api-go-live`.
+
+**When to use:**
+- Runs during DESIGN phase when `manifest.artifacts.apiSpec.mockHandlers == true`
+- Also invoked by `/api-mock-refresh` when the spec changes
+
+**Key outputs:**
+- `web/src/mocks/handlers.ts`
+- `web/src/mocks/browser.ts`
+- `generated-docs/context/mock-spec-snapshot.yaml`
+- `generated-docs/context/mock-data-context.md`
+
+---
+
 ### 4. Feature Planner
 
 **File:** [feature-planner.md](feature-planner.md)
@@ -235,7 +255,24 @@ Generate tests for Epic 1: Basic Auth
 
 ---
 
-### 8. Code Reviewer
+### 8. Spec Compliance Watchdog
+
+**File:** [spec-compliance-watchdog.md](spec-compliance-watchdog.md)
+
+**Purpose:** Runs in QA between implement and code-review. Verifies the implementation faithfully matches story acceptance criteria and the test-design specification-by-example scenarios. Catches semantic drift between what was planned and what was built — before it reaches human review.
+
+**When to use:**
+- After developer completes IMPLEMENT and quality gates pass
+- Before code-reviewer runs its final QA pass
+- Automatically invoked by the orchestrator
+
+**Key outputs:**
+- `generated-docs/context/compliance-findings.json`
+- Structured return (drift items, severity, recommended resolutions)
+
+---
+
+### 9. Code Reviewer
 
 **File:** [code-reviewer.md](code-reviewer.md)
 

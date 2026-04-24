@@ -8,7 +8,11 @@
 
 $ErrorActionPreference = 'SilentlyContinue'
 
-$projectRoot = (Get-Item $PSScriptRoot).Parent.Parent.FullName
+$projectRoot = if ($env:CLAUDE_PROJECT_DIR) {
+    $env:CLAUDE_PROJECT_DIR
+} else {
+    (Get-Item $PSScriptRoot).Parent.Parent.FullName
+}
 $stateFile = Join-Path $projectRoot 'generated-docs\context\workflow-state.json'
 $nodeModulesPath = Join-Path $projectRoot 'web\node_modules'
 

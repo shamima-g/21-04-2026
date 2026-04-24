@@ -80,19 +80,24 @@ The AI agents will take it from there—planning, coding, testing, and validatin
 
 This template includes specialized Claude Code agents for **Test-Driven Development**:
 
-| Phase       | Agent                   | Purpose                                                      |
-| ----------- | ----------------------- | ------------------------------------------------------------ |
-| INTAKE      | intake-agent            | Scan docs, gather requirements, produce intake manifest      |
-| INTAKE      | intake-brd-review-agent | Review completeness, produce Feature Requirements Spec       |
-| DESIGN      | design-api-agent        | Design OpenAPI spec from requirements (conditional)          |
-| DESIGN      | design-style-agent      | Formalize styling into CSS design tokens (conditional)       |
-| DESIGN      | design-wireframe-agent  | Generate text-based wireframes for UI planning (conditional) |
-| SCOPE       | feature-planner         | Define all epics with dependency map                         |
-| STORIES     | feature-planner         | Define stories per epic with acceptance criteria             |
-| REALIGN     | feature-planner         | Check for cross-story impacts before each story              |
-| WRITE-TESTS | test-generator          | Generate failing tests (TDD "Red")                           |
-| IMPLEMENT   | developer               | Make tests pass (TDD "Green")                                |
-| QA          | code-reviewer           | Review, quality gates, commit                                |
+| Phase       | Agent                    | Purpose                                                                 |
+| ----------- | ------------------------ | ----------------------------------------------------------------------- |
+| INTAKE      | intake-agent             | Scan docs, gather requirements, produce intake manifest                 |
+| INTAKE      | prototype-review-agent   | Review v2 prototype exports, extract enrichments, flag assumptions (v2) |
+| INTAKE      | intake-brd-review-agent  | Review completeness, produce Feature Requirements Spec                  |
+| DESIGN      | design-api-agent         | Design OpenAPI spec from requirements (conditional)                     |
+| DESIGN      | design-style-agent       | Formalize styling into CSS design tokens (conditional)                  |
+| DESIGN      | design-wireframe-agent   | Generate text-based wireframes for UI planning (conditional)            |
+| DESIGN      | type-generator-agent     | Generate TypeScript types + endpoints from OpenAPI spec (conditional)   |
+| DESIGN      | mock-setup-agent         | Generate MSW mock handlers from OpenAPI spec (conditional)              |
+| SCOPE       | feature-planner          | Define all epics with dependency map                                    |
+| STORIES     | feature-planner          | Define stories per epic with acceptance criteria                        |
+| REALIGN     | feature-planner          | Check for cross-story impacts before each story                         |
+| TEST-DESIGN | test-designer            | Specification-by-example scenarios for BA review (per story)            |
+| WRITE-TESTS | test-generator           | Generate failing tests (TDD "Red")                                      |
+| IMPLEMENT   | developer                | Make tests pass (TDD "Green")                                           |
+| QA          | spec-compliance-watchdog | Verify implementation matches spec/story/test-design docs               |
+| QA          | code-reviewer            | Review, quality gates, commit                                           |
 
 **Workflow:**
 

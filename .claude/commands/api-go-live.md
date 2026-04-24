@@ -1,3 +1,7 @@
+---
+description: Switch the app from MSW mocks to the live backend API and scan for stray mock patterns
+---
+
 # /api-go-live
 
 Run this command when your backend API is fully implemented and you're ready to switch from mock data to the live API.

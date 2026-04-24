@@ -1,3 +1,7 @@
+---
+description: Regenerate MSW mock handlers for endpoints whose OpenAPI spec has changed, preserving hand-curated data for unchanged endpoints
+---
+
 # /api-mock-refresh
 
 Run this command when your backend developer has updated the API spec and you need the mock handlers to reflect the changes.

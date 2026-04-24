@@ -427,7 +427,7 @@ const alwaysDenyPatterns = [
   'grep\\b[^|;&]*\\s+\\S*\\.pem' + segEnd,
   'grep\\b[^|;&]*\\s+\\S*[/\\\\]\\.ssh[/\\\\]\\S*' + segEnd,
   'grep\\b[^|;&]*\\s+' + dotEnvLeaf + segEnd,
-  'grep\\b[^|;&]*\\s+\\S*[/\\\\]credentials(?:\\.\\w+)?' + segEnd,
+  'grep\\b[^|;&]*\\s+\\S*credentials(?:\\.\\w+)?' + segEnd,
   'grep\\b[^|;&]*\\s+\\S*private[_-]?key(?:\\.\\w+)?' + segEnd,
 ].map(p => new RegExp(p, 'i'));
 
