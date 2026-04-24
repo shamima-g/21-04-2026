@@ -32,9 +32,25 @@ npm run test:tier2
 # Specific tag
 npx vitest --testNamePattern "@unit"
 
-# PowerShell hooks (Windows only)
+# PowerShell hooks (Windows only — requires Pester v5, see below)
 npm run test:pester
 ```
+
+### Pester v5 prerequisite (one-time, Windows only)
+
+The PowerShell hook tests require Pester v5. Windows ships with Pester v3.4, which does not understand the v5 syntax these tests use (`BeforeAll` at script scope, `Should -Match`, etc.). Install v5 side-by-side under the current user:
+
+```powershell
+pwsh -Command "Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -MinimumVersion 5.0"
+```
+
+Verify:
+
+```powershell
+pwsh -Command "Get-Module -ListAvailable Pester | Select-Object Name,Version"
+```
+
+`npm run test:pester` forces the v5 import so the bundled v3.4 does not take precedence.
 
 ## Conventions
 
