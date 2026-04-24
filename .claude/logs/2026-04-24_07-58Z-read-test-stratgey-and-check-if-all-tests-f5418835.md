@@ -728,3 +728,399 @@ _**User: shamima-g (2026-04-24 08:57Z)**_
 
 commit and push
 
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check working tree before staging logs
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Stage all session-log changes
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Commit staged log changes and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Done.
+
+- **Commit:** `26f89d4` â€” *log: rename 2026-04-23 session log + add 2026-04-24 test-strategy audit session*
+- **Changes:** 3 files (1 deleted rename-source, 2 added), 852 insertions, 9 deletions
+- **Pushed** to `origin/main` (`d1ce4e1..26f89d4`)
+- Working tree is now clean.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-24 10:10Z)**_
+
+automate the PowerShell hook test
+
+
+#### Permission Request - 2026-04-24 10:10Z
+
+**Tool:** `Bash`
+
+---
+
+
+_**Agent (model claude-opus-4-7)**_
+
+Per the CLAUDE.md Â§9 carve-out committed in the previous step, QA-TESTS/ maintenance is now exempt from the workflow redirect. Proceeding directly.
+
+Starting with environment + hermeticity checks before writing the test.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check Pester version installed
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check for real workflow-state.json that would pollute tests
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Stopping to report a blocker before writing anything.
+
+**Blocker â€” Pester is v3.4.0, not v5.** The sibling test [inject-phase-context.Tests.ps1](QA-TESTS/tier-1-unit/hooks/powershell/inject-phase-context.Tests.ps1) uses v5 syntax (`Should -Match`, `Should -BeNullOrEmpty`, `BeforeAll` at Describe scope). On v3.4 most of that won't parse or will behave differently â€” the syntax is `Should Match "..."` with positional args, not `-Match`.
+
+That likely means one of two things:
+1. The sibling test isn't actually passing on this machine either â€” it was authored against v5 expectations. Worth a quick confirm.
+2. There's another Pester install somewhere I haven't found.
+
+Before I spend an hour writing and debugging the new test, I need your call on one of these paths:
+
+**Option A â€” Install Pester v5.** Quick and the right long-term fix. Command: `pwsh -Command "Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -MinimumVersion 5.0"`. Side-effect outside the repo â€” I want your OK before running it. Also fixes whatever is happening with the sibling test.
+
+**Option B â€” Write in Pester v3 syntax.** Keeps the environment untouched, but produces a test that looks different from the sibling. And if the sibling actually passes on some other v5 that I haven't detected, Option B creates inconsistency in the test tree.
+
+**Option C â€” Confirm the sibling's state first.** Run the existing [inject-phase-context.Tests.ps1](QA-TESTS/tier-1-unit/hooks/powershell/inject-phase-context.Tests.ps1) under v3.4 and see what happens. If it errors out, the answer is A. If it passes (unlikely), we learn something.
+
+I'd pick **C first â†’ A**. Which do you want?
+
+Also worth noting: `generated-docs/context/` doesn't exist in the repo right now, so tests that assert "silent exit when state missing" don't need backup/restore logic â€” the natural state satisfies them. But PASS tests will need to create the directory and clean it up.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-24 10:12Z)**_
+
+I'd pick C first
+
+
+#### Permission Request - 2026-04-24 10:12Z
+
+**Tool:** `Bash`
+
+---
+
+
+#### Permission Request - 2026-04-24 10:12Z
+
+**Tool:** `Bash`
+
+---
+
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Run sibling Pester test under v3.4 to see behavior
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Run sibling test without v5-only flags
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Confirmed. The sibling test fails to even parse on v3.4:
+
+```
+RuntimeException: The BeforeAll command may only be used inside a Describe block.
+   at C:\Program Files\WindowsPowerShell\Modules\Pester\3.4.0\...
+```
+
+That's v5 syntax (`BeforeAll` at script scope) being rejected by v3.4's stricter rules. The sibling test was clearly authored against v5 expectations and never ran green on this machine.
+
+**Conclusion:** Option B (write the new test in v3 syntax) is now off the table â€” it would create a test that passes while the sibling stays broken, making the test tree inconsistent. Option A (install v5) is the only way to repair the existing sibling *and* enable the new one.
+
+**The install command I'd run:**
+```
+pwsh -Command "Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck -MinimumVersion 5.0"
+```
+
+- `-Scope CurrentUser` â€” no admin required, writes to `%USERPROFILE%\Documents\PowerShell\Modules\`
+- `-Force -SkipPublisherCheck` â€” needed because the old v3.4 is a Microsoft-signed built-in and PowerShell refuses to install side-by-side without this
+- `-MinimumVersion 5.0` â€” guarantees a modern version
+
+After install, I'd verify with `Get-Module -ListAvailable Pester`, then run the sibling test to prove v5 works, then write the new test.
+
+Approve the install?
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-24 10:12Z)**_
+
+Yes
+
+
+#### Permission Request - 2026-04-24 10:13Z
+
+**Tool:** `Bash`
+
+---
+
+
+#### Permission Request - 2026-04-24 10:14Z
+
+**Tool:** `Bash`
+
+---
+
+
+#### Permission Request - 2026-04-24 10:25Z
+
+**Tool:** `Bash`
+
+---
+
+
+#### Permission Request - 2026-04-24 10:27Z
+
+**Tool:** `Bash`
+
+---
+
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: ToolSearch_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Update Todos
+[*] Install Pester v5
+[ ] Verify install and confirm sibling test passes on v5
+[ ] Write inject-agent-context.Tests.ps1
+[ ] Run the new test and iterate on failures
+[ ] Commit and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Install Pester v5 for current user
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Verify Pester v5 is installed
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Run sibling test under forced Pester v5
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Pester v5.7.1 now loads. Running the sibling also confirmed the latent hermeticity bug I warned about â€” the PASS test fails because the hook reads from the real `generated-docs/context/`, not from `$TempRoot`. I'll write the new test with proper backup/restore so it doesn't inherit that bug. I'll flag the sibling as a separate issue at the end.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Update Todos
+[x] Install Pester v5
+[x] Verify install and confirm sibling test passes on v5
+[*] Write inject-agent-context.Tests.ps1
+[ ] Run the new test and iterate on failures
+[ ] Commit and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Write_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Update Todos
+[x] Install Pester v5
+[x] Verify install and confirm sibling test passes on v5
+[x] Write inject-agent-context.Tests.ps1
+[*] Run the new test and iterate on failures
+[ ] Commit and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Run the new test under Pester v5
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+All 7 tests green on first run. Verifying no leftover pollution from the hermetic backup/restore.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Confirm no test artifacts left behind
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Update Todos
+[x] Install Pester v5
+[x] Verify install and confirm sibling test passes on v5
+[x] Write inject-agent-context.Tests.ps1
+[x] Run the new test and iterate on failures
+[*] Commit and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Stage only the new test file
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Commit and push the new test file
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Update Todos
+[x] Install Pester v5
+[x] Verify install and confirm sibling test passes on v5
+[x] Write inject-agent-context.Tests.ps1
+[x] Run the new test and iterate on failures
+[x] Commit and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Done.
+
+**Result**
+- Pester v5.7.1 installed side-by-side with v3.4.0 (`-Scope CurrentUser`, no admin).
+- [QA-TESTS/tier-1-unit/hooks/powershell/inject-agent-context.Tests.ps1](QA-TESTS/tier-1-unit/hooks/powershell/inject-agent-context.Tests.ps1) â€” 7 tests, all passing: 2 PASS paths, 5 FAIL branches.
+- Hermetic via real-repo backup/restore in `BeforeEach`/`AfterEach` (because both hooks resolve from `$PSScriptRoot`, not `$PWD`).
+- Commit `cbde883`, pushed to `origin/main`.
+
+**Run command going forward:**
+```
+pwsh -NoProfile -Command "Import-Module Pester -MinimumVersion 5.0 -Force; Invoke-Pester QA-TESTS/tier-1-unit/hooks/powershell/inject-agent-context.Tests.ps1 -Output Detailed"
+```
+
+**Two follow-ups surfaced but not actioned** (separate from this task â€” want to keep scope tight):
+
+1. **Sibling test has the same hermeticity bug.** [inject-phase-context.Tests.ps1](QA-TESTS/tier-1-unit/hooks/powershell/inject-phase-context.Tests.ps1) PASS case fails on v5 because it writes `workflow-state.json` into a temp dir the hook never reads from. Same backup/restore fix would green it up â€” happy to patch it in a separate commit if you want.
+
+2. **TEST-STRATEGY.md assumes Pester is pre-installed.** Nothing in the repo bootstraps it. Worth adding a line to `/setup` (or a note in the strategy doc) so future contributors don't hit the same v3.4-only wall.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-24 10:37Z)**_
+
+commit and push first
+
