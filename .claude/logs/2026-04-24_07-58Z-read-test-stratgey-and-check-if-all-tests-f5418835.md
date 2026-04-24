@@ -1124,3 +1124,277 @@ _**User: shamima-g (2026-04-24 10:37Z)**_
 
 commit and push first
 
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check working tree state
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Commit and push session log
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Confirm clean tree
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Log commit pushed.
+
+- **Commit:** `3eba576` â€” *log: append Pester v5 install + inject-agent-context test session*
+- **Changes:** 1 file, 396 insertions
+- **Pushed:** `cbde883..3eba576`
+- **Working tree:** clean
+
+Ready for your call on the two follow-ups (sibling test hermeticity fix + Pester install note in `/setup`).
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-24 10:38Z)**_
+
+Now do the changes
+
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Update Todos
+[*] Fix sibling test (inject-phase-context.Tests.ps1) hermeticity
+[ ] Add Pester v5 install note/check to /setup
+[ ] Run both PS tests to verify green
+[ ] Commit and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Write_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Now finding `/setup` to add the Pester v5 bootstrap note.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Glob_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Update Todos
+[x] Fix sibling test (inject-phase-context.Tests.ps1) hermeticity
+[x] Add Pester v5 prerequisite note + force v5 in npm test:pester
+[*] Run both PS tests to verify green
+[ ] Commit and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Run the updated npm test:pester to verify both PS tests pass
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Three bugs surfaced â€” my new test is green, but my hermeticity fix to `inject-phase-context.Tests.ps1` revealed a second issue (assertion against multi-line JSON), and `workflow-guard.Tests.ps1` has the same pattern on 4 cases. Before my Pester v5 install, those weren't running at all (they silently parse-errored on v3.4). Now they run and fail. That's a regression I introduced â€” I should fix the whole surface or roll back.
+
+Reading workflow-guard to confirm it's the same problem.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Read_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check workflow-guard.ps1 root resolution
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Scope call: user asked me to fix the *sibling* test and add the install note. `workflow-guard.Tests.ps1` has a similar bug across 4 cases, but it's pre-existing â€” not caused by my change, just newly visible because Pester v5 can now actually parse and run it. I'll:
+
+1. Complete the sibling fix (one more assertion tweak â€” `Should -Match` against a multi-line array matches per element, so join first).
+2. Leave `workflow-guard.Tests.ps1` alone and flag as a follow-up, rather than expand scope.
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+_Tools used: Edit_
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Re-run the two targeted PS tests
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Update Todos
+[x] Fix sibling test (inject-phase-context.Tests.ps1) hermeticity
+[x] Add Pester v5 prerequisite note + force v5 in npm test:pester
+[x] Run both PS tests to verify green
+[*] Commit and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Check changes to commit
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Stage the three code changes only, leave log for a separate commit
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Bash: Commit and push the three code changes
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+
+
+Update Todos
+[x] Fix sibling test (inject-phase-context.Tests.ps1) hermeticity
+[x] Add Pester v5 prerequisite note + force v5 in npm test:pester
+[x] Run both PS tests to verify green
+[x] Commit and push
+
+---
+
+_**Agent (model claude-opus-4-7)**_
+
+Done.
+
+**Commit:** `6909c59` â€” *test: fix inject-phase-context.Tests.ps1 hermeticity + document Pester v5*, 3 files, +49/âˆ’12, pushed to `origin/main` (`3eba576..6909c59`).
+
+**Both inject-hook tests green** (9/9 under `npm run test:pester`).
+
+**New follow-up surfaced â€” `workflow-guard.Tests.ps1`.** Pre-existing but now visible. It has the same hermeticity bug (writes to temp, hook reads real) plus per-element `Should -Match` on multi-line JSON output, affecting 4 of 5 cases. Not in scope for this task, but it's the last thing standing between `npm run test:pester` and a fully-green suite. Flagged in the commit body. Want me to fix it next, or leave for later?
+
+Also separately â€” the session log is modified but uncommitted. Say the word and I'll push it.
+
+[Logs saved]
+
+---
+
+
+_**User: shamima-g (2026-04-24 11:07Z)**_
+
+commit and push
+
